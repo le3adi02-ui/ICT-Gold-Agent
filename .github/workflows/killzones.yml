@@ -1,0 +1,25 @@
+name: ICT Gold Killzones Agent
+
+on:
+  schedule:
+    # التوقيت مريكل على جرينتش (توقيت المغرب الحالي) من الإثنين للجمعة
+    - cron: '0 2,3,4,8,9,10,14,15,16 * * 1-5'
+  workflow_dispatch: # هادي كتعطيك بوطونة باش تخدمو بيدك للتجربة
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+    steps:
+      - name: جلب الكود من المستودع
+        uses: actions/checkout@v3
+
+      - name: إعداد بايثون
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: تنزيل المكتبات المطلوبة
+        run: pip install -r requirements.txt
+
+      - name: تشغيل خوارزمية ICT وإرسال التنبيه
+        run: python main.py
