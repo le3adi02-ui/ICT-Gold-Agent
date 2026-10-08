@@ -3,16 +3,19 @@ import yfinance as yf
 import google.generativeai as genai
 import requests
 
-# السوارت مخبيين دابا بأمان
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 CHAT_ID = os.environ.get("CHAT_ID")
 
-
 try:
-    # 1. جلب البيانات (فريم 5 دقائق)
-    gold = yf.Ticker("XAUUSD=X")
+    # جلب بيانات العقود الآجلة للذهب (أكثر استقراراً في Yahoo Finance)
+    gold = yf.Ticker("GC=F")
     df = gold.history(period="2d", interval="5m")
+
+    # حماية من الكراش إذا كان السيرفور مبلوكي من طرف Yahoo
+    if df is None or df.empty or len(df) < 14:
+        print("⏳ بيانات الذهب غير متوفرة حالياً. سيتم المحاولة بعد 10 دقائق...")
+        exit()
 
     last_candle = df.iloc[-2]
     body = abs(last_candle['Open'] - last_candle['Close'])
@@ -32,13 +35,12 @@ try:
     df['ATR'] = df['High'] - df['Low']
     atr_value = df['ATR'].iloc[-14:].mean()
 
-    # 2. تحليل الذكاء الاصطناعي بالإصدار الجديد 2.0
     genai.configure(api_key=GEMINI_API_KEY)
     model = genai.GenerativeModel('gemini-2.0-flash')
 
     prompt = f"""
     أنت متداول Intraday محترف تدمج بين SMC، العرض والطلب، والبرايس أكشن.
-    بيانات الذهب (XAU/USD) على فريم 5 دقائق الآن:
+    بيانات الذهب (GC=F) على فريم 5 دقائق الآن:
     - السعر الحالي: {current_price:.2f}$
     - أقرب مقاومة (Supply): {resistance:.2f}$
     - أقرب دعم (Demand): {support:.2f}$
@@ -61,9 +63,8 @@ try:
     response = model.generate_content(prompt)
     analysis = response.text
     
-    # 3. إرسال التوصية إذا توفرت فرصة
     if "Wait" not in analysis and "انتظار" not in analysis:
-        message = f"⚡ **رصد فرصة Intraday حية (XAU/USD)** ⚡\n\n{analysis}"
+        message = f"⚡ **رصد فرصة Intraday حية (Gold)** ⚡\n\n{analysis}"
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
         payload = {"chat_id": CHAT_ID, "text": message, "parse_mode": "Markdown"}
         requests.post(url, data=payload)
