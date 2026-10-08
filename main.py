@@ -1,11 +1,13 @@
+import os
 import yfinance as yf
 import google.generativeai as genai
 import requests
 
-# --- حط السوارت ديالك هنا ---
-GEMINI_API_KEY = "AQ.Ab8RN6J5T-q9IOIm6P3YRJxsVVzs4o1gVr58-O9cEhvHiBFbyQ"
-TELEGRAM_TOKEN = "8859402714:AAEWCleyZwGU90J9Vccf5Og864YFIEz7cgI"
-CHAT_ID = "1617045979"
+# السوارت مخبيين دابا بأمان
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+CHAT_ID = os.environ.get("CHAT_ID")
+
 
 try:
     # 1. جلب البيانات (فريم 5 دقائق)
