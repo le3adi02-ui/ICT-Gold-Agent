@@ -1,6 +1,6 @@
 import os
 import yfinance as yf
-import google.generativeai as genai
+from google import genai
 import requests
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
@@ -8,11 +8,9 @@ TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 CHAT_ID = os.environ.get("CHAT_ID")
 
 try:
-    # جلب بيانات العقود الآجلة للذهب (أكثر استقراراً في Yahoo Finance)
     gold = yf.Ticker("GC=F")
     df = gold.history(period="2d", interval="5m")
 
-    # حماية من الكراش إذا كان السيرفور مبلوكي من طرف Yahoo
     if df is None or df.empty or len(df) < 14:
         print("⏳ بيانات الذهب غير متوفرة حالياً. سيتم المحاولة بعد 10 دقائق...")
         exit()
@@ -35,8 +33,7 @@ try:
     df['ATR'] = df['High'] - df['Low']
     atr_value = df['ATR'].iloc[-14:].mean()
 
-    genai.configure(api_key=GEMINI_API_KEY)
-    model = genai.GenerativeModel('gemini-2.0-flash')
+    client = genai.Client(api_key=GEMINI_API_KEY)
 
     prompt = f"""
     أنت متداول Intraday محترف تدمج بين SMC، العرض والطلب، والبرايس أكشن.
@@ -49,7 +46,7 @@ try:
 
     شروط إدارة المخاطر الصارمة (إلزامية):
     1. الحد الأقصى لوقف الخسارة (SL): لا يتجاوز 150 نقطة (15.00$).
-    2. العائد مقابل المخاطرة (Risk/Reward): الهدف (TP) يجب أن يكون 1:1 كأضعف الإيمان، ويفضل 1:2 أو 1:3.
+    2. العائد مقابل المخاطرة (Risk/Reward): الهدف (TP) يجب أن يكون 1:1 كأضعف الإيمان، ويفضل 1:2.
 
     تنسيق الرد الإلزامي:
     🎯 **الاستراتيجية:**
@@ -60,7 +57,10 @@ try:
     📝 **التحليل:** 
     """
 
-    response = model.generate_content(prompt)
+    response = client.models.generate_content(
+        model='gemini-3.8-flash',
+        contents=prompt,
+    )
     analysis = response.text
     
     if "Wait" not in analysis and "انتظار" not in analysis:
