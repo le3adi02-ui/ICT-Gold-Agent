@@ -1,6 +1,4 @@
 yfinance
-google-generativeai
+google-genai
 requests
 pandas
-Flask
-gunicorn
