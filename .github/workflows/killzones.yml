@@ -1,7 +1,6 @@
 name: ICT Gold Intraday Agent
 on:
   schedule:
-    # يخدم كل 10 دقايق، من الإثنين للجمعة، بين 8 صباحا و 6 عشية بتوقيت غرينيتش (أوقات السيولة)
     - cron: '*/10 8-18 * * 1-5'
   workflow_dispatch:
 
@@ -17,8 +16,6 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run script
-        run: python main.py
-- name: Run script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
